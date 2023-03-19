@@ -6,6 +6,6 @@ seaborn
 matplotlib
 sklearn
 xgboost
-scikitplot
+scikit-plot
 pandas-profiling
 streamlit-pandas-profiling
