@@ -8,8 +8,6 @@ import warnings
 warnings.filterwarnings('ignore')
 from utils import *
 from ChurnRateModel import ChurnRateModel
-from IPython.core.interactiveshell import InteractiveShell
-InteractiveShell.ast_node_interactivity= 'all'
 from scikitplot import metrics
 import json
 import pickle 
