@@ -3,9 +3,9 @@ pandas
 streamlit
 numpy
 seaborn
-matplotlib.pyplot
+matplotlib
 sklearn
 xgboost
-scikitplot
+scikit-plot
 pandas-profiling
 streamlit-pandas-profiling
