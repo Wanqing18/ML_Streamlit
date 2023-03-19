@@ -1,0 +1,11 @@
+scikit-plot
+pandas
+streamlit
+numpy
+seaborn
+matplotlib.pyplot
+sklearn
+xgboost
+scikitplot
+pandas-profiling
+streamlit-pandas-profiling
