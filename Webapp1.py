@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-#python -m streamlit run "c:/Users/Gaming/Desktop/Test Code/MLweb/Webapp.py"
 import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
 import matplotlib.pyplot as plt
