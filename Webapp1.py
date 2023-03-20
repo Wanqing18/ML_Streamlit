@@ -11,7 +11,21 @@ from ChurnRateModel import ChurnRateModel
 from scikitplot import metrics
 import json
 import pickle 
-
+# hide main menue and customized footer for internal user
+hide_menu="""
+<style>
+#MainMenu {
+    visibility:hidden;}
+footer{
+        visibility:visible;
+}
+footer:after{
+        content:'Copyright @ 2023 : Wanqing';
+        display: block;
+        position: relative;
+}
+</style>
+"""
 
 # Page title layout
 st.set_page_config(page_title='Churn Rate Prediction With Customized HypterParameters',layout='wide' )
@@ -21,16 +35,17 @@ with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # short introduction
-#st.title('Churn Rate Prediction With Customized HypterParameters')
-#st.write(""" This Web aims to predict the churn rate (https://www.investopedia.com/terms/c/churnrate.asp) of a customer using **XGBoosting** with cutomized hyperparameters. 
+#st.subheader('Churn Rate Prediction With Customized HypterParameters')
+#st.markdown("<h4>This Web aims to predict the churn rate of a customer using **XGBoosting** with cutomized hyperparameters.</h4>", unsafe_allow_html=True) 
 #The end-to-end training process including data preprocessing, Hyperparameter tuning, model fitting, and performance evaluation is completed.""")
 
+st.markdown(hide_menu,unsafe_allow_html = True)
 # seperate load, profiling, model, ouput into different secction
 with st.sidebar:
-    st.title('XGBoosting Forecasting')
+    st.title('Churn Rate Forecasting')
     st.subheader('Navigation')
     choice=st.radio('Choose Your Status',['Upload','Profiling','Modeling','Download'])
-    st.info('Through following the steps above, you would be able to complete the EDA, XGBmodel training, and download the predicted result and evaluation metrics')
+    st.info('Through following the steps above, you would be able to complete the EDA, XGBmodel training, and download the predicted result and evaluation metrics.')
 
 if 'churnRateModel' not in st.session_state:
 	st.session_state.churnRateModel = ChurnRateModel()
@@ -47,19 +62,19 @@ if choice == 'Upload':
     if file:
         churnRateModel.setDataFrameFromFile(file)
         st.dataframe(churnRateModel.getDataFrame())
-        st.info('File has been uploaded')
+        st.info('File has been uploaded.')
 
 # profiling section
 if choice == 'Profiling':
     #st.header('Exploratory Data Analysis')
     st.markdown(f'<h1> Exploratory Data Analysis</h1>',unsafe_allow_html=True)
-    st.write("This auto profiling function will provide detailed information for each variable.We could know the type, correlations and missing values' distribution of each varaible")
+    st.write("Interactive reports of the dataset would be generated here. The correlations of each variable and information for missing values could also be visualized. ")
     df = st.session_state.churnRateModel.getDataFrame()
     if st.button('Start Profiling') and not df.empty:
         profile_report=df.profile_report()
         st_profile_report(profile_report)
     else:
-        st.info('Please Upload your file first')
+        st.info('Please Upload Your File First.')
 
 
 
@@ -79,11 +94,12 @@ if choice == 'Modeling':
     if st.button('Start Processing'): 
         if not churnRateModel.getDataFrame().empty:     
             churnRateModel.preprocessing(target)
-            st.info('Data Finished Processing')
+            
         else:
-            st.info('Please Upload your file first')
+            st.info('Please Upload Your File First.')
          
     if not churnRateModel.features.empty: 
+        st.info('Data Finished Processing.')
         col1,col2 = st.columns(2)
         col1_expander = col1.expander('View Features')
         with col1_expander:
@@ -102,15 +118,16 @@ if choice == 'Modeling':
         
         #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
         st.markdown('''<h1 style="font-size: 26px">Set Parameters</h1>''',unsafe_allow_html=True)
+        st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
         # set split ratio
         st.markdown('<h2>Split Ratio</h2>',unsafe_allow_html=True)
-        st.markdown('<h3>Insert split ratio(% for Training set)</h3>',unsafe_allow_html=True)
-        parameter_split_ratio=st.slider('Insert split ratio(% for Training set)', step=0.1,min_value=0.6, max_value=1.0,label_visibility="collapsed")
-        st.write('The current split ratio is ', parameter_split_ratio)
+        st.markdown('<h3>Insert split ratio for training set</h3>',unsafe_allow_html=True)
+        parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=1.0,label_visibility="collapsed")
+        st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
-        if st.button('Start spliting'):
+        if st.button('Start Splitting'):
             churnRateModel.data_split(parameter_split_ratio)
-            st.info('Data Finished Spliting')
+            st.info('Data Finished Spliting.')
         if not churnRateModel.X_train_OE.empty: 
             # adjust layout
             
@@ -144,13 +161,13 @@ if choice == 'Modeling':
             # start predict with all parameters get selected
          
             if (parameter_LearningRate == 0) and (parameter_MaxDepth == 0) and (parameter_colsample_bytree == 0):
-                st.info('Please Select Your parameters')       
+                st.info('Please Select Your parameters.')       
             elif  (parameter_LearningRate == 0):
-                st.info('Please Input parameter_LearningRate')
+                st.info('Please Input parameter_LearningRate.')
             elif  (parameter_MaxDepth == 0):
-                st.info('Please Select Max_Depth')
+                st.info('Please Select Max_Depth.')
             elif (parameter_colsample_bytree == 0):
-                st.info('Please Select parameter_colsample_bytree')
+                st.info('Please Select parameter_colsample_bytree.')
 
            
 
@@ -159,7 +176,7 @@ if choice == 'Modeling':
                         
                 if st.button('Predict'):
                         churnRateModel.predict_and_plot(parameter_MaxDepth, parameter_LearningRate, parameter_n_estimators, parameter_colsample_bytree)
-                        st.info('Finished Prediction')
+                        st.info('Finished Prediction.')
                         st.session_state.Predicted= True # change it to global
 
                 if st.session_state.Predicted: 
@@ -202,12 +219,11 @@ if choice == 'Modeling':
 if choice == 'Download':
     #st.title('Download Ouput')
     st.markdown(f'<h1> Download Ouput</h1>',unsafe_allow_html=True)
-
     # create multi label select to see result
     # download selected result and saved model
     churnRateModel = st.session_state.churnRateModel
     if st.session_state.Predicted:
-        st.markdown(f'<h3> Select the result you want to download</h3>',unsafe_allow_html=True)
+        st.markdown(f'<h3> Select the result you want to download.</h3>',unsafe_allow_html=True)
         options=st.multiselect('Select the result you want to download',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','Model','PredictedOutcome'],label_visibility="collapsed")
 
         #display layout
@@ -258,6 +274,6 @@ if choice == 'Download':
 
         #st.download_button('Download Selected Result', data=options,filename=,mime=image/png)
     else:
-        st.info('Please Finish Your Model Training First')
+        st.info('Please Finish Your Model Training First.')
    
 
