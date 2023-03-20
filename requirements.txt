@@ -4,7 +4,7 @@ streamlit
 numpy
 seaborn
 matplotlib
-sklearn
+scikit-learn
 xgboost
 scikit-plot
 pandas-profiling
