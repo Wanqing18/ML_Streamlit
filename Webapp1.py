@@ -70,11 +70,12 @@ if choice == 'Profiling':
     st.markdown(f'<h1> Exploratory Data Analysis</h1>',unsafe_allow_html=True)
     st.write("Interactive reports of the dataset would be generated here. The correlations of each variable and information for missing values could also be visualized. ")
     df = st.session_state.churnRateModel.getDataFrame()
-    if st.button('Start Profiling') and not df.empty:
-        profile_report=df.profile_report()
-        st_profile_report(profile_report)
-    else:
-        st.info('Please Upload Your File First.')
+    if st.button('Start Profiling'):
+        if not df.empty:     
+            profile_report=df.profile_report()
+            st_profile_report(profile_report)    
+        else:
+            st.info('Please Upload Your File First.')
 
 # Modeling section
 if choice == 'Modeling':
@@ -119,7 +120,7 @@ if choice == 'Modeling':
         st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
         # set split ratio
         st.markdown('<h2>Split Ratio</h2>',unsafe_allow_html=True)
-        parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=1.0,label_visibility="collapsed")
+        parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=0.9,label_visibility="collapsed")
         st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
         if st.button('Start Splitting'):

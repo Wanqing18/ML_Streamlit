@@ -57,13 +57,12 @@ if choice == 'Profiling':
     st.markdown(f'<h1> Exploratory Data Analysis</h1>',unsafe_allow_html=True)
     st.write("Interactive reports of the dataset would be generated here. The correlations of each variable and information for missing values could also be visualized. ")
     df = st.session_state.churnRateModel.getDataFrame()
-    if st.button('Start Profiling') and not df.empty:
-        profile_report=df.profile_report()
-        st_profile_report(profile_report)
-    else:
-        st.info('Please Upload Your File First.')
-
-
+    if st.button('Start Profiling'):
+        if not df.empty:     
+            profile_report=df.profile_report()
+            st_profile_report(profile_report)    
+        else:
+            st.info('Please Upload Your File First.')
 
 # Modeling section
 if choice == 'Modeling':
@@ -104,7 +103,7 @@ if choice == 'Modeling':
 
         # set split ratio
         st.markdown('<h4>Split Ratio</h4>',unsafe_allow_html=True)
-        parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=1.0,label_visibility="collapsed")
+        parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=0.9,label_visibility="collapsed")
         st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
         if st.button('Start Splitting'):
@@ -147,47 +146,50 @@ if choice == 'Modeling':
                 if (parameter_LearningRate != 0) and (parameter_MaxDepth != 0) and (parameter_colsample_bytree != 0):
                      st.session_state.Para = True
                 #if (parameter_LearningRate == 0) and (parameter_MaxDepth == 0) and (parameter_colsample_bytree == 0):
-                    #st.info('Please Select Your parameters.')       
-            with right:
+                    #st.info('Please Select Your parameters.') 
                 if st.session_state.Para:
                     if st.button("Predict"):
                             churnRateModel.predict_and_plot(parameter_MaxDepth, parameter_LearningRate, parameter_n_estimators, parameter_colsample_bytree)
                             st.info('Finished Prediction.')
-                            st.session_state.Predicted= True # change it to global
-            
-                    if st.session_state.Predicted: 
+                            st.session_state.Predicted= True # change it to global      
+            with right:
+                if not churnRateModel.X_train_OE.empty:
+                    result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
+                
+                if st.session_state.Para:            
+                    #result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
 
-                        result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
+                    col1,col2 = st.columns(2)
+                    with col1:
+                        if 'ROC_Curve' in result:
+                            st.subheader('ROC_Curve')
+                            st.pyplot(churnRateModel.roc_curvePlot)
+                            
+                        if 'Metric_Report' in result:
+                            st.subheader('Metric_Report')
+                            report=churnRateModel.report
+                            st.dataframe(report)
 
-                        col1,col2 = st.columns(2)
-                        with col1:
-                            if 'ROC_Curve' in result:
-                                st.subheader('ROC_Curve')
-                                st.pyplot(churnRateModel.roc_curvePlot)
-                                
-                            if 'Metric_Report' in result:
-                                st.subheader('Metric_Report')
-                                report=churnRateModel.report
-                                st.dataframe(report)
+                        if 'ImportanceFeatures' in result:
+                            st.subheader('ImportanceFeatures')
+                            st.pyplot(churnRateModel.importancePlot)
 
-                            if 'ImportanceFeatures' in result:
-                                st.subheader('ImportanceFeatures')
-                                st.pyplot(churnRateModel.importancePlot)
+                    with col2:
+                        if 'Multiple_ROC' in result: # special cases: Axessubplot
+                            st.subheader('Multiple_ROC')
+                            multiplot = metrics.plot_roc(churnRateModel.y_test, churnRateModel.xg_probs_test0).figure
+                            multiplot
 
-                        with col2:
-                            if 'Multiple_ROC' in result: # special cases: Axessubplot
-                                st.subheader('Multiple_ROC')
-                                multiplot = metrics.plot_roc(churnRateModel.y_test, churnRateModel.xg_probs_test0).figure
-                                multiplot
+                        if 'ConfusionMatrix' in result:
+                            st.subheader('ConfusionMatrix')
+                            st.pyplot(churnRateModel.confusionPlot)
 
-                            if 'ConfusionMatrix' in result:
-                                st.subheader('ConfusionMatrix')
-                                st.pyplot(churnRateModel.confusionPlot)
-
-                        if 'PredictedOutcome' in result:
-                            st.subheader('PredictedOutcome')
-                            result=churnRateModel.predictedResult()
-                            st.dataframe(result) 
+                    if 'PredictedOutcome' in result:
+                        st.subheader('PredictedOutcome')
+                        result=churnRateModel.predictedResult()
+                        st.dataframe(result) 
+                else:
+                    st.info("Please Train the model First.")
 
 
 # download section:display result and download
