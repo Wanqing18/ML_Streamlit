@@ -51,8 +51,17 @@ if 'churnRateModel' not in st.session_state:
 	st.session_state.churnRateModel = ChurnRateModel()
             
 if 'Predicted' not in st.session_state: # set a flag for output display and download
-    st.session_state.Predicted = False    
+    st.session_state.Predicted = False 
 
+if "parameter_LearningRate" not in st.session_state:
+    st.session_state.parameter_LearningRate = False
+
+if "parameter_MaxDepth" not in st.session_state:
+    st.session_state.parameter_MaxDepth = False
+
+if "parameter_colsample_bytree" not in st.session_state:
+    st.session_state.parameter_colsample_bytree = False
+    
 # upload section
 if choice == 'Upload':
     st.markdown(f'<h1> Upload Data For Modeling</h1>',unsafe_allow_html=True)
@@ -62,18 +71,20 @@ if choice == 'Upload':
     if file:
         churnRateModel.setDataFrameFromFile(file)
         st.dataframe(churnRateModel.getDataFrame())
-        st.info('File has been uploaded.')
+        st.info('File has been uploaded. You could go to the **Profiling** session or the **Modeling** session now.')
 
 # profiling section
 if choice == 'Profiling':
     #st.header('Exploratory Data Analysis')
     st.markdown(f'<h1> Exploratory Data Analysis</h1>',unsafe_allow_html=True)
-    st.write("Interactive reports of the dataset would be generated here. The correlations of each variable and information for missing values could also be visualized. ")
+    st.write("Interactive reports of the dataset would be generated here. The correlations of each variable and information for missing values could also be visualized and downloaded. ")
     df = st.session_state.churnRateModel.getDataFrame()
     if st.button('Start Profiling'):
         if not df.empty:     
             profile_report=df.profile_report()
-            st_profile_report(profile_report)    
+            st_profile_report(profile_report)
+            export=profile_report.to_html()
+            st.download_button(label="Download Full Profiling Report", data=export, file_name='Profiling_Report.html')     
         else:
             st.info('Please Upload Your File First.')
 
@@ -131,17 +142,17 @@ if choice == 'Modeling':
             
             # set learning rate
             st.markdown('<h2>Learning Rate</h2>',unsafe_allow_html=True)
-            parameter_LearningRate=st.number_input('Insert learning rate',step=0.001,min_value=0.000, max_value=1.000,label_visibility="collapsed" )
-            st.write('The current learning rate is ', parameter_LearningRate)
-            if  (parameter_LearningRate == 0):
+            st.session_state.parameter_LearningRate=st.number_input('Insert learning rate',step=0.001,min_value=0.000, max_value=1.000,label_visibility="collapsed" )
+            st.write('The current learning rate is ', st.session_state.parameter_LearningRate)
+            if  (st.session_state.parameter_LearningRate == 0):
                     st.info('Please Input parameter_LearningRate.')
 
             # set max_depth
             st.markdown('<h2>Max Depth</h2>',unsafe_allow_html=True)
-            parameter_MaxDepth=st.number_input('Insert Max Depth',min_value=0,label_visibility="collapsed")
-            st.write('The current Max Depth of a tree is ', parameter_MaxDepth)
+            st.session_state.parameter_MaxDepth=st.number_input('Insert Max Depth',min_value=0,label_visibility="collapsed")
+            st.write('The current Max Depth of a tree is ', st.session_state.parameter_MaxDepth)
             #st.info(' Increasing this value will make the model more complex and more likely to overfit.')
-            if  (parameter_MaxDepth == 0):
+            if  (st.session_state.parameter_MaxDepth == 0):
                     st.info('Please Select Max_Depth.')
         
             #set n_estimators
@@ -151,19 +162,19 @@ if choice == 'Modeling':
 
             # set colsample_bytree
             st.markdown('<h2>Colsample_bytree</h2>',unsafe_allow_html=True)
-            parameter_colsample_bytree=st.slider('Insert colsample_bytree',min_value=0.0,max_value=1.0,step=0.1,label_visibility="collapsed")
-            st.write('The current colsample_bytree are ', parameter_colsample_bytree)
+            st.session_state.parameter_colsample_bytree=st.slider('Insert colsample_bytree',min_value=0.0,max_value=1.0,step=0.1,label_visibility="collapsed")
+            st.write('The current colsample_bytree are ', st.session_state.parameter_colsample_bytree)
             #st.info('this is the subsample ratio of columns when constructing each tree.')
-            if (parameter_colsample_bytree == 0):
+            if (st.session_state.parameter_colsample_bytree == 0):
                     st.info('Please Select parameter_colsample_bytree.')
             # start predict with all parameters get selected
          
             #if (parameter_LearningRate == 0) and (parameter_MaxDepth == 0) and (parameter_colsample_bytree == 0):
                 #st.info('Please Select Your parameters.')       
 
-            if (parameter_LearningRate != 0) and (parameter_MaxDepth != 0) and (parameter_colsample_bytree != 0):   
+            if (st.session_state.parameter_LearningRate != 0) and (st.session_state.parameter_MaxDepth != 0) and (st.session_state.parameter_colsample_bytree != 0):   
                 if st.button('Predict'):
-                        churnRateModel.predict_and_plot(parameter_MaxDepth, parameter_LearningRate, parameter_n_estimators, parameter_colsample_bytree)
+                        churnRateModel.predict_and_plot(st.session_state.parameter_MaxDepth, st.session_state.parameter_LearningRate, parameter_n_estimators, st.session_state.parameter_colsample_bytree)
                         st.info('Finished Prediction.')
                         st.session_state.Predicted= True # change it to global
 
@@ -212,7 +223,7 @@ if choice == 'Download':
     churnRateModel = st.session_state.churnRateModel
     if st.session_state.Predicted:
         st.markdown(f'<h3> Select the result you want to download.</h3>',unsafe_allow_html=True)
-        options=st.multiselect('Select the result you want to download',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','Model','PredictedOutcome'],label_visibility="collapsed")
+        options=st.multiselect('Select the result you want to download',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','Model','PredictedOutcome',],label_visibility="collapsed")
 
         #display layout
         d_col1,d_col2 = st.columns(2)
@@ -260,7 +271,6 @@ if choice == 'Download':
             st.dataframe(result)
             st.download_button(label='Download PredictedOutcome', data = result.to_csv(index=False), file_name='PredictedOutcome.csv', mime='text/csv')
 
-        #st.download_button('Download Selected Result', data=options,filename=,mime=image/png)
     else:
         st.info('Please Finish Your Model Training First.')
    
