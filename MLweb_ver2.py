@@ -96,9 +96,8 @@ if choice == 'Modeling':
         st.info('Data Finished Processing.')
         col1,col2 = st.columns(2)
         col1_expander = col1.expander('View Features')
+
         with col1_expander:
-        #click=st.checkbox()
-        #if click: # can't show dataframe
             st.dataframe(churnRateModel.features)
 
         col2_expander = col2.expander('View Labels')
@@ -106,13 +105,9 @@ if choice == 'Modeling':
         #click2=st.checkbox('View Labels')
         #if click2:
             st.dataframe(churnRateModel.labels)
-        
-        #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
-        st.markdown('''<h1 style="font-size: 26px;line_hight:2">Set Parameters</h1>''',unsafe_allow_html=True)
-        st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
 
         # set split ratio
-        st.markdown('<h4>Split Ratio</h4>',unsafe_allow_html=True)
+        st.markdown('<h1 style="font-size: 26px;line_hight:2">Train-Test Split</h1>',unsafe_allow_html=True)
         parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=0.9,label_visibility="collapsed")
         st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
@@ -121,6 +116,9 @@ if choice == 'Modeling':
             st.info('Data Finished Spliting.')
             st.session_state.split= True
         # split parameter to left and   result to right
+        #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
+        st.markdown('''<h1 style="font-size: 26px;line_hight:2">Set Parameters</h1>''',unsafe_allow_html=True)
+        st.write("Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
         left, right=st.columns([4,6])
         with left:
             if not churnRateModel.X_train_OE.empty:
@@ -162,7 +160,8 @@ if choice == 'Modeling':
             with right:
                 if (st.session_state.parameter_LearningRate != 0) and (st.session_state.parameter_MaxDepth != 0) and (st.session_state.parameter_colsample_bytree != 0):           
                     if st.session_state.Predicted:
-                        result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
+                        st.markdown('<h3>Select the result you want to see:</h3>',unsafe_allow_html=True)
+                        result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'], label_visibility="collapsed")
                         
                         col1,col2 = st.columns(2)
                         with col1:

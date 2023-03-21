@@ -28,7 +28,7 @@ footer:after{
 """
 
 # Page title layout
-st.set_page_config(page_title='Churn Rate Prediction With Customized HypterParameters',layout='wide' )
+st.set_page_config(page_title='Churn Rate Prediction With Customized HypterParameters',layout='centered' )
 
 # Load customized text style for each title
 with open('style.css') as f:
@@ -123,23 +123,22 @@ if choice == 'Modeling':
         #if click2:
             st.dataframe(churnRateModel.labels)
     
-
-        # split parameter to left and   result to right
         
-        #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
-        st.markdown('''<h1 style="font-size: 26px">Set Parameters</h1>''',unsafe_allow_html=True)
-        st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
         # set split ratio
-        st.markdown('<h2>Split Ratio</h2>',unsafe_allow_html=True)
+        st.markdown('<h1 style="font-size: 26px;line_hight:2">Train-Test Split</h1>',unsafe_allow_html=True)
         parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=0.9,label_visibility="collapsed")
         st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
         if st.button('Start Splitting'):
             churnRateModel.data_split(parameter_split_ratio)
             st.info('Data Finished Spliting.')
+        
+        
         if not churnRateModel.X_train_OE.empty: 
             # adjust layout
-            
+            #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
+            st.markdown('''<h1 style="font-size: 26px">Set Parameters</h1>''',unsafe_allow_html=True)
+            st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
             # set learning rate
             st.markdown('<h2>Learning Rate</h2>',unsafe_allow_html=True)
             st.session_state.parameter_LearningRate=st.number_input('Insert learning rate',step=0.001,min_value=0.000, max_value=1.000,label_visibility="collapsed" )
@@ -179,8 +178,8 @@ if choice == 'Modeling':
                         st.session_state.Predicted= True # change it to global
 
                 if st.session_state.Predicted: 
-
-                    result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
+                    st.markdown('<h3>Select the result you want to see:</h3>',unsafe_allow_html=True)
+                    result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'],label_visibility="collapsed")
 
                     col1,col2 = st.columns(2)
                     with col1:
