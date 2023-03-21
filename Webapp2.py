@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-#python -m streamlit run "./Webapp1.py"
 import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
 import matplotlib.pyplot as plt
@@ -11,21 +10,6 @@ from ChurnRateModel import ChurnRateModel
 from scikitplot import metrics
 import json
 import pickle 
-# hide main menue and customized footer for internal user
-hide_menu="""
-<style>
-#MainMenu {
-    visibility:hidden;}
-footer{
-        visibility:visible;
-}
-footer:after{
-        content:'Copyright @ 2023 : Wanqing';
-        display: block;
-        position: relative;
-}
-</style>
-"""
 
 # Page title layout
 st.set_page_config(page_title='Churn Rate Prediction With Customized HypterParameters',layout='wide' )
@@ -39,7 +23,7 @@ with open('style.css') as f:
 #st.markdown("<h4>This Web aims to predict the churn rate of a customer using **XGBoosting** with cutomized hyperparameters.</h4>", unsafe_allow_html=True) 
 #The end-to-end training process including data preprocessing, Hyperparameter tuning, model fitting, and performance evaluation is completed.""")
 
-st.markdown(hide_menu,unsafe_allow_html = True)
+
 # seperate load, profiling, model, ouput into different secction
 with st.sidebar:
     st.title('Churn Rate Forecasting')
@@ -52,6 +36,9 @@ if 'churnRateModel' not in st.session_state:
             
 if 'Predicted' not in st.session_state: # set a flag for output display and download
     st.session_state.Predicted = False    
+
+if 'Para' not in st.session_state:
+    st.session_state.Para = False
 
 # upload section
 if choice == 'Upload':
@@ -76,6 +63,8 @@ if choice == 'Profiling':
     else:
         st.info('Please Upload Your File First.')
 
+
+
 # Modeling section
 if choice == 'Modeling':
     #st.title('XGBoosting For Churn Rate Forecasting')
@@ -85,8 +74,6 @@ if choice == 'Modeling':
     churnRateModel = st.session_state.churnRateModel
     st.markdown('<h3>Select Predicted Target:</h3>',unsafe_allow_html=True)
     target= st.selectbox('Select Predicted Target',churnRateModel.getDataFrame().columns, label_visibility="collapsed")
-    if target:
-        st.write(target, 'has been selected for prediction.')
 
     # Confirm data button (preprocessing)
     if st.button('Start Processing'): 
@@ -110,96 +97,97 @@ if choice == 'Modeling':
         #click2=st.checkbox('View Labels')
         #if click2:
             st.dataframe(churnRateModel.labels)
-    
-
-        # split parameter to left and   result to right
         
         #st.markdown(""" <style> .font {font-size:30px ;  color: #17202A;} </style> """, unsafe_allow_html=True)
-        st.markdown('''<h1 style="font-size: 26px">Set Parameters</h1>''',unsafe_allow_html=True)
+        st.markdown('''<h1 style="font-size: 26px;line_hight:2">Set Parameters</h1>''',unsafe_allow_html=True)
         st.write("Spliting Ratio, Learning Ratio, Max Depth, Numbers of Estimators and Colsample_bytree could be selected.")
+
         # set split ratio
-        st.markdown('<h2>Split Ratio</h2>',unsafe_allow_html=True)
+        st.markdown('<h4>Split Ratio</h4>',unsafe_allow_html=True)
         parameter_split_ratio=st.slider('Insert split ratio for Training set', step=0.1,min_value=0.5, max_value=1.0,label_visibility="collapsed")
         st.write('The current split ratio is ', parameter_split_ratio, 'for training dataset.')
         # confirm spliting ratio
         if st.button('Start Splitting'):
             churnRateModel.data_split(parameter_split_ratio)
             st.info('Data Finished Spliting.')
-        if not churnRateModel.X_train_OE.empty: 
-            # adjust layout
-            
-            # set learning rate
-            st.markdown('<h2>Learning Rate</h2>',unsafe_allow_html=True)
-            parameter_LearningRate=st.number_input('Insert learning rate',step=0.001,min_value=0.000, max_value=1.000,label_visibility="collapsed" )
-            st.write('The current learning rate is ', parameter_LearningRate)
-            if  (parameter_LearningRate == 0):
-                    st.info('Please Input parameter_LearningRate.')
-
-            # set max_depth
-            st.markdown('<h2>Max Depth</h2>',unsafe_allow_html=True)
-            parameter_MaxDepth=st.number_input('Insert Max Depth',min_value=0,label_visibility="collapsed")
-            st.write('The current Max Depth of a tree is ', parameter_MaxDepth)
-            #st.info(' Increasing this value will make the model more complex and more likely to overfit.')
-            if  (parameter_MaxDepth == 0):
-                    st.info('Please Select Max_Depth.')
-        
-            #set n_estimators
-            st.markdown('<h2>Numbers of Estimators</h2>',unsafe_allow_html=True)
-            parameter_n_estimators=st.slider('Insert n_estimators',min_value=10,max_value=150,step=5,label_visibility="collapsed")
-            st.write('The current Numbers of Estimators are ', parameter_n_estimators)
-
-            # set colsample_bytree
-            st.markdown('<h2>Colsample_bytree</h2>',unsafe_allow_html=True)
-            parameter_colsample_bytree=st.slider('Insert colsample_bytree',min_value=0.0,max_value=1.0,step=0.1,label_visibility="collapsed")
-            st.write('The current colsample_bytree are ', parameter_colsample_bytree)
-            #st.info('this is the subsample ratio of columns when constructing each tree.')
-            if (parameter_colsample_bytree == 0):
-                    st.info('Please Select parameter_colsample_bytree.')
-            # start predict with all parameters get selected
-         
-            #if (parameter_LearningRate == 0) and (parameter_MaxDepth == 0) and (parameter_colsample_bytree == 0):
-                #st.info('Please Select Your parameters.')       
-
-            if (parameter_LearningRate != 0) and (parameter_MaxDepth != 0) and (parameter_colsample_bytree != 0):   
-                if st.button('Predict'):
-                        churnRateModel.predict_and_plot(parameter_MaxDepth, parameter_LearningRate, parameter_n_estimators, parameter_colsample_bytree)
-                        st.info('Finished Prediction.')
-                        st.session_state.Predicted= True # change it to global
-
-                if st.session_state.Predicted: 
-
-                    result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
-
-                    col1,col2 = st.columns(2)
-                    with col1:
-                        if 'ROC_Curve' in result:
-                            st.subheader('ROC_Curve')
-                            st.pyplot(churnRateModel.roc_curvePlot)
-                            
-                        if 'Metric_Report' in result:
-                            st.subheader('Metric_Report')
-                            report=churnRateModel.report
-                            st.dataframe(report)
-
-                        if 'ImportanceFeatures' in result:
-                            st.subheader('ImportanceFeatures')
-                            st.pyplot(churnRateModel.importancePlot)
-
-                    with col2:
-                        if 'Multiple_ROC' in result: # special cases: Axessubplot
-                            st.subheader('Multiple_ROC')
-                            multiplot = metrics.plot_roc(churnRateModel.y_test, churnRateModel.xg_probs_test0).figure
-                            multiplot
-
-                        if 'ConfusionMatrix' in result:
-                            st.subheader('ConfusionMatrix')
-                            st.pyplot(churnRateModel.confusionPlot)
-
-                    if 'PredictedOutcome' in result:
-                        st.subheader('PredictedOutcome')
-                        result=churnRateModel.predictedResult()
-                        st.dataframe(result)
+        # split parameter to left and   result to right
+        left, right=st.columns([4,6])
+        with left:
+            if not churnRateModel.X_train_OE.empty: 
+                # adjust layout
                 
+                # set learning rate
+                st.markdown('<h4>Learning Rate</h4>',unsafe_allow_html=True)
+                parameter_LearningRate=st.number_input('Insert learning rate',step=0.001,min_value=0.000, max_value=1.000,label_visibility="collapsed" )
+                st.write('The current learning rate is ', parameter_LearningRate)
+                if  (parameter_LearningRate == 0):
+                        st.info('Please Input parameter_LearningRate.')
+
+                # set max_depth
+                st.markdown('<h4>Max Depth</h4>',unsafe_allow_html=True)
+                parameter_MaxDepth=st.number_input('Insert Max Depth',min_value=0,label_visibility="collapsed")
+                st.write('The current Max Depth of a tree is ', parameter_MaxDepth)
+                #st.info(' Increasing this value will make the model more complex and more likely to overfit.')
+                if  (parameter_MaxDepth == 0):
+                        st.info('Please Select Max_Depth.')
+            
+                #set n_estimators
+                st.markdown('<h2>Numbers of Estimators</h2>',unsafe_allow_html=True)
+                parameter_n_estimators=st.slider('Insert n_estimators',min_value=10,max_value=150,step=5,label_visibility="collapsed")
+                st.write('The current Numbers of Estimators are ', parameter_n_estimators)
+
+                # set colsample_bytree
+                st.markdown('<h4>Colsample_bytree</h4>',unsafe_allow_html=True)
+                parameter_colsample_bytree=st.slider('Insert colsample_bytree',min_value=0.0,max_value=1.0,step=0.1,label_visibility="collapsed")
+                st.write('The current colsample_bytree are ', parameter_colsample_bytree)
+                #st.info('this is the subsample ratio of columns when constructing each tree.')
+                if (parameter_colsample_bytree == 0):
+                        st.info('Please Select parameter_colsample_bytree.')
+                # start predict with all parameters get selected
+                if (parameter_LearningRate != 0) and (parameter_MaxDepth != 0) and (parameter_colsample_bytree != 0):
+                     st.session_state.Para = True
+                #if (parameter_LearningRate == 0) and (parameter_MaxDepth == 0) and (parameter_colsample_bytree == 0):
+                    #st.info('Please Select Your parameters.')       
+            with right:
+                if st.session_state.Para:
+                    if st.button("Predict"):
+                            churnRateModel.predict_and_plot(parameter_MaxDepth, parameter_LearningRate, parameter_n_estimators, parameter_colsample_bytree)
+                            st.info('Finished Prediction.')
+                            st.session_state.Predicted= True # change it to global
+            
+                    if st.session_state.Predicted: 
+
+                        result=st.multiselect('Select the result you want to see',['ROC_Curve','Multiple_ROC','Metric_Report','ConfusionMatrix','ImportanceFeatures','PredictedOutcome'])
+
+                        col1,col2 = st.columns(2)
+                        with col1:
+                            if 'ROC_Curve' in result:
+                                st.subheader('ROC_Curve')
+                                st.pyplot(churnRateModel.roc_curvePlot)
+                                
+                            if 'Metric_Report' in result:
+                                st.subheader('Metric_Report')
+                                report=churnRateModel.report
+                                st.dataframe(report)
+
+                            if 'ImportanceFeatures' in result:
+                                st.subheader('ImportanceFeatures')
+                                st.pyplot(churnRateModel.importancePlot)
+
+                        with col2:
+                            if 'Multiple_ROC' in result: # special cases: Axessubplot
+                                st.subheader('Multiple_ROC')
+                                multiplot = metrics.plot_roc(churnRateModel.y_test, churnRateModel.xg_probs_test0).figure
+                                multiplot
+
+                            if 'ConfusionMatrix' in result:
+                                st.subheader('ConfusionMatrix')
+                                st.pyplot(churnRateModel.confusionPlot)
+
+                        if 'PredictedOutcome' in result:
+                            st.subheader('PredictedOutcome')
+                            result=churnRateModel.predictedResult()
+                            st.dataframe(result) 
 
 
 # download section:display result and download

@@ -6,6 +6,22 @@ h2{font-weight: bold;
     font-size: 23px ; 
   }
 h3{font-weight: normal;
+    
     font-size: 17px ; 
+}
+h4{font-weight: bold;
+    
+    font-size: 23px ;
 
 }
+#MainMenu {
+    visibility:hidden;}
+footer{
+        visibility:visible;
+}
+footer:after{
+        content:'Copyright @ 2023 : Wanqing';
+        display: block;
+        position: relative;
+}
+
